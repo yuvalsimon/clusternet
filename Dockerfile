@@ -19,7 +19,9 @@ RUN curl -o ~/miniconda.sh -O  https://repo.anaconda.com/archive/Anaconda3-5.3.1
      /opt/conda/bin/conda install -c cpbotha magma-cuda10 && \
      /opt/conda/bin/conda clean -ya
 ENV PATH /opt/conda/bin:$PATH
-RUN conda install pytorch torchvision cuda100 -c pytorch
+RUN conda install pytorch=1.2 
+RUN conda install torchvision 
+RUN conda install cuda100 -c pytorch
 RUN conda install numba
 RUN pip install qpth
 RUN pip install cvxpy
