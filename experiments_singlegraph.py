@@ -7,7 +7,7 @@ import torch.nn as nn
 import sklearn
 from kcenter import make_all_dists, greedy_kcenter, gonzalez_kcenter, CenterObjective, make_dists_igraph, rounding
 from models import GCNLink, GCNClusterNet, GCNDeep, GCNDeepSigmoid, GCN
-from utils import make_normalized_adj, negative_sample, edge_dropout, load_nofeatures
+from utils import make_normalized_adj, negative_sample, edge_dropout, load_nofeatures, accuracy, calculate_accuracy
 from modularity import baseline_spectral, partition, greedy_modularity_communities, make_modularity_matrix
 from loss_functions import loss_kcenter, loss_modularity
 
@@ -289,6 +289,11 @@ if run_decision:
         print('ClusterNet value', testvals[np.argmin(trainvals)])
     if args.objective == 'modularity':
             print('ClusterNet value', curr_test_loss)
+            tmp_training_state = model_cluster.training
+            model_cluster.training = False
+            mu, r, embeds, dist = model_cluster(features_train, adj_train, num_cluster_iter)
+            model_cluster.training = tmp_training_state
+            print("ClusterNet accuracy: ", accuracy(r, labels).item())
 
 ##############################################################################
 #TRAIN TWO-STAGE
@@ -344,13 +349,18 @@ if run_ts:
     if args.objective == 'modularity':
         r = greedy_modularity_communities(preds, K)
         print('agglomerative', loss_fn(None, r, None, None, bin_adj_all, test_object, args))
+        print("agglomerative accuracy: ", accuracy(r, labels).item())
+        
         r = partition(preds, K)
         print('recursive', loss_fn(None, r, None, None, bin_adj_all, test_object, args))
+        print("recursive accuracy: ", accuracy(r, labels).item())
+
         degrees = preds.sum(dim=1)
         preds = torch.diag(1./degrees)@preds
         mod_pred = make_modularity_matrix(preds)
         r = baseline_spectral(mod_pred, K)
         print('spectral', loss_fn(None, r, None, None, bin_adj_all, test_object, args))
+        print("spectral accuracy: ", accuracy(r, labels).item())
     elif args.objective == 'kcenter':
         try:
             dist_ts = torch.load('{}_twostage_dist.pt'.format(args.dataset))
@@ -455,13 +465,18 @@ if run_train_only:
         preds = bin_adj_train
         r = greedy_modularity_communities(preds, K)
         print('agglomerative', loss_fn(None, r, None, None, bin_adj_all, test_object, args))
+        print("agglomerative accuracy: ", accuracy(r, labels).item())
+
         r = partition(preds, K)
         print('recursive', loss_fn(None, r, None, None, bin_adj_all, test_object, args))
+        print("recursive accuracy: ", accuracy(r, labels).item())
+
         degrees = preds.sum(dim=1)
         preds = torch.diag(1./degrees)@preds
         mod_pred = make_modularity_matrix(preds)
         r = baseline_spectral(mod_pred, K)
         print('spectral', loss_fn(None, r, None, None, bin_adj_all, test_object, args))
+        print("spectral accuracy: ", accuracy(r, labels).item())
     elif args.objective == 'kcenter':
         x = gonzalez_kcenter(dist_train, K)
         print('gonzalez train', obj_test(x))
@@ -478,13 +493,18 @@ if calculate_opt:
         preds = bin_adj_all
         r = greedy_modularity_communities(preds, K)
         print('agglomerative', loss_fn(None, r, None, None, bin_adj_all, test_object, args))
+        print("agglomerative accuracy: ", accuracy(r, labels).item())
+
         r = partition(preds, K)
         print('recursive', loss_fn(None, r, None, None, bin_adj_all, test_object, args))
+        print("recursive accuracy: ", accuracy(r, labels).item())
+
         degrees = preds.sum(dim=1)
         preds = torch.diag(1./degrees)@preds
         mod_pred = make_modularity_matrix(preds)
         r = baseline_spectral(mod_pred, K)
         print('spectral', loss_fn(None, r, None, None, bin_adj_all, test_object, args))
+        print("spectral accuracy: ", accuracy(r, labels).item())
     elif args.objective == 'kcenter':
         x = gonzalez_kcenter(dist_all, K)
         print('gonzalez all', obj_test(x))

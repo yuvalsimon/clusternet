@@ -164,3 +164,9 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
+
+def calculate_accuracy(r, labels):
+    predictions = r.argmax(dim=1)
+    count_correct = (labels == predictions).sum().item()
+    total = labels.shape[0]
+    return count_correct / total
