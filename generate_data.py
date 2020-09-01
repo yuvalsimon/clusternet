@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -30,7 +32,7 @@ def main(args):
     vertex_class_prob = 0.5
     V = 2000
     E = 10000
-    prob_edge_between_classes = 0.5
+    prob_edge_between_classes = 0.2
     train_pct = 0.4
     test_pct =  0.5
 
@@ -102,7 +104,7 @@ def main(args):
             classes.append(c)
             content.write("%d %f %f %d\n" % (v, px0, py0, c))
 
-    plt.scatter(np.array(all_x), np.array(all_y), c=classes)
+    plt.scatter(np.array(all_x), np.array(all_y), c=classes, s=5)
     plt.show()
 
     for i in ['train', 'test', 'valid']:
