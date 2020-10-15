@@ -104,9 +104,33 @@ class GCNDeep(nn.Module):
             x = F.relu(gc(x, adj))
             x = F.dropout(x, self.dropout, training=self.training)
         x = self.gcend(x, adj)
+        x = F.log_softmax(x, dim=1)
 
         return x
-    
+
+class GCNLinear(nn.Module):
+    def __init__(self, nfeat, nhid, nout, dropout, nlayers, K):
+        super(GCNLinear, self).__init__()
+
+        self.gcstart = GraphConvolution(nfeat, nhid)
+        self.gcn_middle = []
+        for i in range(nlayers-2):
+            self.gcn_middle.append(GraphConvolution(nhid, nhid))
+        self.gcend = GraphConvolution(nhid, nout)
+        self.dropout = dropout
+        self.classifier = nn.Linear(nout, K)
+
+    def forward(self, x, adj):
+        x = F.relu(self.gcstart(x, adj))
+        x = F.dropout(x, self.dropout, training=self.training)
+        for gc in self.gcn_middle:
+            x = F.relu(gc(x, adj))
+            x = F.dropout(x, self.dropout, training=self.training)
+        x = self.gcend(x, adj)
+        x = self.classifier(x)
+        x = F.log_softmax(x, dim=1)
+        
+        return x
 
 class GCNDeepSigmoid(nn.Module):
     '''

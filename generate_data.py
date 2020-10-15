@@ -32,7 +32,7 @@ def main(args):
     vertex_class_prob = 0.5
     V = 2000
     E = 10000
-    prob_edge_between_classes = 0.2
+    prob_edge_between_classes = 0.3
     train_pct = 0.4
     test_pct =  0.5
 
